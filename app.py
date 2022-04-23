@@ -42,15 +42,14 @@ time.sleep(5)
 
 
 #-------------completion engine setup
-AI_idea= ""
 @app.route("/", methods=("GET", "POST"))
 def index():
-    global idea
     if request.method == "POST":
         AI_idea = request.form["idea"]
+        text = issue_list_query(AI_idea)
         response = openai.Completion.create(
             engine="text-davinci-002",
-            prompt=generate_prompt(idea),
+            prompt=generate_prompt(AI_idea, text),
             temperature=0.6,
             max_tokens =1000
         )
@@ -60,28 +59,31 @@ def index():
     print(result)
     return render_template("index.html", result=result)
 
-# querying the issue list based on the AI idea
-response = openai.Engine("davinci").search(
-  documents=issue_list[:200],
-  #file=file_id,
-  query=AI_idea,
-)
-print(type(response))
-sorted_response = sorted(response["data"], key=lambda kv: kv["score"])
-#print(sorted_response[-6:])
+def issue_list_query(AI_idea):
+    # querying the issue list based on the AI idea
+    response = openai.Engine("davinci").search(
+    documents=issue_list[:200],
+    #file=file_id,
+    query=AI_idea,
+    )
+    print(type(response))
+    sorted_response = sorted(response["data"], key=lambda kv: kv["score"])
+    #print(sorted_response[-6:])
 
-#print(issue_list[26])
+    #print(issue_list[26])
 
-top_five = sorted_response[-5:]
+    top_five = sorted_response[-5:]
 
-prompt_text = ""
-for d in top_five:
-    cur_doc_num = d["document"]
-    cur_issue_text= issue_list[cur_doc_num]
-    prompt_text = prompt_text + cur_issue_text + "\n"
+    prompt_text = ""
+    for d in top_five:
+        cur_doc_num = d["document"]
+        cur_issue_text= issue_list[cur_doc_num]
+        prompt_text = prompt_text + cur_issue_text + "\n"
+    
+    return prompt_text
 
 #generating the prompt for the completion engine based on the users idea input and the issues that were matched to the idea
-def generate_prompt(idea):
+def generate_prompt(AI_idea, prompt_text):
     return f"""Give ten examples on the risks associated with the following idea: {AI_idea}
     \n {prompt_text}
     """
