@@ -12,12 +12,11 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 text_list = []
 issue_list = []
 
-with open('./static/text_data_merged.csv') as csv_file:
+with open('./static/text_data_merged.csv', encoding='utf-8-sig') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     line_count = 0
     for row in csv_reader:
         if line_count == 0:
-            #print(f'Column names are {", ".join(row)}')
             line_count += 1
         else:
             text_list.append(row[1])
